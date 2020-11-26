@@ -2,7 +2,7 @@
 A Shotgun Toolkit application that dynamically loads commands from a configurable list of directories.
 
 # Commands Path
-The `commands_path` is the list of paths the app will load commands from. Each path should be a directory containing python files organized by engine. Each python file should contain a `register` function which will be called when tk-multi-commands is initialized. The `register` functions will be passed, `app`, `engine`, and `context`.
+The `commands_path` is the list of paths the app will load commands from. Each path should be a directory containing python files organized by engine. Each python file should contain a `register` function which will be called when tk-multi-commands is initialized.
 
 The `commands_path` contains a commands directory in your pipeline configuration as well as paths provided by the `SHOTGUN_MULTI_COMMANDS_PATH` environment variable.
 
