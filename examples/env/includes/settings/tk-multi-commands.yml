@@ -1,0 +1,7 @@
+# Add this file to your settings folder.
+includes:
+- ../app_locations.yml
+
+
+settings.tk-multi-commands:
+  location: '@apps.tk-multi-commands.location'
