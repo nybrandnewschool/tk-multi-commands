@@ -19,7 +19,7 @@ commands/
 Let's imagine you want to add a custom command to the tk-aftereffects engine. Create a file in commands/tk-afterffects called say_hello.py with the following contents.
 
 ```
-from tk_multi_command import app, engine, context
+from tk_multi_commands import app, engine, context
 
 
 class SayHello(app.Command):
@@ -39,7 +39,7 @@ def unregister():
     pass
 ```
 
-At the top of the file we import the `app, engine, and context` from the `tk_multi_command`. This is a special import only available in command modules and provides a simple way for you to access the correct `app, engine, and context` objects. Then we derive our SayHello class from `app.Command` which is a convenience way of defining Shotgun commands in a more declarative fashion. Finally we register our SayHello command in the module level register function. You can register as many commands as you like here or perform some other setup you require.
+At the top of the file we import the `app, engine, and context` from the `tk_multi_commands`. This is a special import only available in command modules and provides a simple way for you to access the correct `app, engine, and context` objects. Then we derive our SayHello class from `app.Command` which is a convenience way of defining Shotgun commands in a more declarative fashion. Finally we register our SayHello command in the module level register function. You can register as many commands as you like here or perform some other setup you require.
 
 # Installation
 Make the changes in the example_config directory to your own shotgun pipeline configuration.

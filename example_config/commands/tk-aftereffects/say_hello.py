@@ -1,4 +1,4 @@
-from tk_multi_command import app, engine, context
+from tk_multi_commands import app, engine, context
 
 
 class SayHello(app.Command):
