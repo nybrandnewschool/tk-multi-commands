@@ -146,13 +146,102 @@ class MultiCommandsApp(Application):
                 """
                 return NotImplemented
 
+        class Panel(ABC):
+            """
+            Baseclass used to declare ShotGrid Panel UIs.
+
+            Attributes:
+                name (str): The name of the command in Menus.
+                properties (dict): Command properties: icon, description,
+                    short_name, title, group, group_default, type like
+                    "context_menu", "panel", or "node".
+
+            See Also:
+                https://developer.shotgridsoftware.com/tk-core/platform.html#sgtk.platform.Engine.register_panel
+            """
+
+            @property
+            @abstractmethod
+            def name(self):
+                return 'Command'
+
+            @property
+            @abstractmethod
+            def properties(self):
+                return {}
+
+            def __init__(self, app, engine, context):
+                self.app = app
+                self.engine = engine
+                self.context = context
+                self.properties = dict(self.properties, **{'type': 'panel'})
+                self.logger = app.logger
+
+                # Store panel id and widget
+                self.id = None
+                self.widget = None
+
+            @classmethod
+            def register(cls):
+                # "self" here is the MultiCommandsApp instance.
+                cmd = cls(self, self.engine, self.context)
+
+                # Check availability
+                if not cmd.available():
+                    return
+
+                cmd.init()
+
+                # Register panel
+                cmd.id = self.engine.register_panel(cmd.show_panel)
+                self.engine.register_command(
+                    name=cmd.name,
+                    callback=cmd.show_panel,
+                    properties=cmd.properties,
+                )
+
+                self.commands_registry.append(cmd)
+
+            def show_panel(self):
+                widget_cls, widget_args, widget_kwargs = self.execute()
+                widget = self.engine.show_panel(
+                    self.id,
+                    self.properties.get('title', self.name),
+                    self.app,
+                    widget_cls,
+                    *widget_args,
+                    **widget_kwargs,
+                )
+                self.widget = widget
+                return widget
+
+            def available(self):
+                """Return True if the Command is available for the current
+                app, context, and engine.
                 """
-                Subclasses must implement this method.
+                return True
+
+            def init(self):
+                """Perform additional setup before the Command is registered."""
+                return NotImplemented
+
+            def context_changed(self, old_context, new_context):
+                """Called after a Context is changed."""
+                return NotImplemented
+
+            @abstractmethod
+            def execute(self):
                 """
+                The callback used by app.register_panel and app.show_panel.
+                Must return a tuple (QWidget class, args, kwargs). The args and
+                kwargs will be passed to the QWidget class during construction.
+                """
+                return NotImplemented
 
         # A convenience class for creating declarative commands in command
         # modules.
         self.Command = Command
+        self.Panel = Panel
 
         # This is a virtual module used to grab the app, engine, and context
         # in command modules.
