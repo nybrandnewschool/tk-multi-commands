@@ -4,6 +4,7 @@
 import os
 import types
 import sys
+from abc import ABC, abstractmethod
 
 # Third party imports
 from sgtk.platform import Application
@@ -57,36 +58,94 @@ class MultiCommandsApp(Application):
         Setup commands path and prepare Application for registering commands.
         """
 
-        class Command(object):
+        class Command(ABC):
             """
-            Class for creating declarative commands in command modules.
+            Baseclass used to declare ShotGrid Commands.
+
+            Required Attributes:
+                name (str): The name of the command in Menus.
+                properties (dict): Command properties: icon, description,
+                    short_name, title, group, group_default, type like
+                    "context_menu", "panel", or "node".
+
+            See Also:
+                https://developer.shotgridsoftware.com/tk-core/platform.html#sgtk.platform.Engine.register_command
             """
 
-            name = 'Command'
-            properties = {}
+            @property
+            @abstractmethod
+            def name(self):
+                return 'Command'
+
+            @property
+            @abstractmethod
+            def properties(self):
+                return {}
 
             def __init__(self, app, engine, context):
                 self.app = app
                 self.engine = engine
                 self.context = context
                 self.properties = dict(self.properties)
-
-                # Resolve icon in commands_path
-                if 'icon' in self.properties:
-                    icon = self.properties['icon']
-                    if not os.path.isfile(icon):
-                        self.properties['icon'] = app.get_resource(icon)
+                self.logger = app.logger
 
             @classmethod
             def register(cls):
+                # "self" here is the MultiCommandsApp instance.
                 cmd = cls(self, self.engine, self.context)
+
+                # Check availability
+                if not cmd.available():
+                    return
+
+                cmd.init()
                 self.engine.register_command(
                     name=cmd.name,
                     callback=cmd.execute,
                     properties=cmd.properties,
                 )
 
-            def execute(self, *args, **kwargs):
+                self.commands_registry.append(cmd)
+
+            def show_dialog(self, title, widget, *args, **kwargs):
+                return self.engine.show_dialog(
+                    title,
+                    self.app,
+                    widget,
+                    *args,
+                    **kwargs,
+                )
+
+            def show_modal(self, title, widget, *args, **kwargs):
+                return self.engine.show_modal(
+                    title,
+                    self.app,
+                    widget,
+                    *args,
+                    **kwargs,
+                )
+
+            def available(self):
+                """Return True if the Command is available for the current
+                app, context, and engine.
+                """
+                return True
+
+            def init(self):
+                """Perform additional setup before the Command is registered."""
+                return NotImplemented
+
+            def context_changed(self, old_context, new_context):
+                """Subclasses can use this to respond to context changes."""
+                return NotImplemented
+
+            @abstractmethod
+            def execute(self):
+                """The callback that will be called when this Command is run by
+                ShotGrid.
+                """
+                return NotImplemented
+
                 """
                 Subclasses must implement this method.
                 """
