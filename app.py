@@ -5,6 +5,7 @@ import os
 import types
 import sys
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 
 # Third party imports
 from sgtk.platform import Application
@@ -99,11 +100,12 @@ class MultiCommandsApp(Application):
                     return
 
                 cmd.init()
-                self.engine.register_command(
-                    name=cmd.name,
-                    callback=cmd.execute,
-                    properties=cmd.properties,
-                )
+                with ApplicationProxy(self, self.engine, cmd):
+                    self.engine.register_command(
+                        name=cmd.name,
+                        callback=cmd.execute,
+                        properties=cmd.properties,
+                    )
 
                 self.commands_registry.append(cmd)
 
@@ -193,12 +195,13 @@ class MultiCommandsApp(Application):
                 cmd.init()
 
                 # Register panel
-                cmd.id = self.engine.register_panel(cmd.show_panel)
-                self.engine.register_command(
-                    name=cmd.name,
-                    callback=cmd.show_panel,
-                    properties=cmd.properties,
-                )
+                with ApplicationProxy(self, self.engine, cmd):
+                    cmd.id = self.engine.register_panel(cmd.show_panel)
+                    self.engine.register_command(
+                        name=cmd.name,
+                        callback=cmd.show_panel,
+                        properties=cmd.properties,
+                    )
 
                 self.commands_registry.append(cmd)
 
@@ -262,6 +265,36 @@ class MultiCommandsApp(Application):
                 kwargs will be passed to the QWidget class during construction.
                 """
                 return NotImplemented
+
+        @contextmanager
+        def ApplicationProxy(app, engine, cmd):
+            """Replace Application object with Proxy in context."""
+
+            class _ApplicationProxy(object):
+
+                @property
+                def display_name(self):
+                    if isinstance(cmd, app.Command):
+                        default_display_name = 'Commands'
+                    elif isinstance(cmd, app.Panel):
+                        default_display_name = 'Panels'
+                    else:
+                        default_display_name = app.display_name
+                    return cmd.properties.get(
+                        'group',
+                        default_display_name,
+                    )
+
+                def __getattr__(self, attr):
+                    return getattr(app, attr)
+
+            _real_app = engine._Engine__currently_initializing_app or app
+            _proxy_app = _ApplicationProxy()
+            try:
+                engine._Engine__currently_initializing_app = _proxy_app
+                yield _proxy_app
+            finally:
+                engine._Engine__currently_initializing_app = _real_app
 
         # A convenience class for creating declarative commands in command
         # modules.
