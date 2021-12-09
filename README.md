@@ -107,11 +107,16 @@ As in the Command example, we must implement the `execute` method. However, the 
 
 ## API
 ### Command Module Basics
-Command modules may subclass app.Command and app.Panel and register their subclasses in a module level `register` function. Command modules may also include an `unregister` function which can be used to perform cleanup.
+Command modules may subclass app.Command and app.Panel and register their subclasses in a module level `register` function. Command modules may also include an `unregister` function which can be used to perform cleanup. Commands are grouped into submenus based on the "group" property. The default groups are Commands and Panels.
 ```
 from tk_multi_commands import app, context, engine
 
 class MyCommand(app.Command):
+    name = 'MyCommand'
+    properties = {
+        'icon': ...,
+        'description': ...,
+    }
     ...
 
 def register():
