@@ -105,7 +105,8 @@ class MultiCommandsApp(Application):
 
         # Load all command modules!
         self.commands_path = self._load_commands_path()
-        self.commands_registry = self._load_commands()
+        self.commands_registry = []
+        self.commands_modules = self._load_commands()
 
     def destroy_app(self):
         """
@@ -121,7 +122,8 @@ class MultiCommandsApp(Application):
         del(module)
 
         # Unload all command modules in the registry
-        self._unload_commands(self.commands_registry)
+        self._unload_commands(self.commands_modules)
+        self.commands_modules[:] = []
         self.commands_registry[:] = []
 
     def get_resource(self, path):
@@ -247,7 +249,7 @@ class MultiCommandsApp(Application):
         Calls the unregister function in each command module.
         """
 
-        for command in self.commands_registry:
+        for command in self.commands_modules:
             try:
                 if hasattr(command, 'unregister'):
                     command.unregister()
