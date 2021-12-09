@@ -213,7 +213,32 @@ class MultiCommandsApp(Application):
                     **widget_kwargs,
                 )
                 self.widget = widget
+                self.add_closeEvent(widget)
                 return widget
+
+            def add_closeEvent(self, widget):
+                widget._panel = self
+                widget._old_closeEvent = getattr(widget, 'closeEvent', None)
+
+                def closeEvent(self, event):
+                    self._panel.logger.debug('Closing %s', self)
+                    self._panel._on_close(self)
+                    if self._old_closeEvent:
+                        self._old_closeEvent(event)
+
+                widget.closeEvent = closeEvent
+
+            def _on_close(self, widget):
+                self.logger.debug('_on_close %s', widget)
+                if widget == self.widget:
+                    self.logger.debug('Clearing widget instance on %s.', self)
+                    self.widget = None
+
+                self.on_close(widget)
+
+            def on_close(self, widget):
+                """Called when the Panels widget is closed."""
+                return
 
             def available(self):
                 """Return True if the Command is available for the current
