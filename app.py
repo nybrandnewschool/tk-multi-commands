@@ -137,6 +137,20 @@ class MultiCommandsApp(Application):
             if os.path.exists(potential_path):
                 return potential_path
 
+    @property
+    def context_change_allowed(self):
+        return True
+
+    def post_context_change(self, old_context, new_context):
+        for obj in self.commands_modules + self.commands_registry:
+            obj.app = self
+            obj.engine = self.engine
+            obj.logger = self.logger
+            obj.context = new_context
+
+            if hasattr(obj, 'context_changed'):
+                obj.context_changed(old_context, new_context)
+
     def _load_commands_path(self):
         """
         Load commands path.
