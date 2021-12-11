@@ -285,6 +285,12 @@ class MultiCommandsApp(Application):
                         default_display_name,
                     )
 
+                def __eq__(self, other):
+                    return (
+                        app == other or
+                        self.display_name == getattr(other, 'display_name', '')
+                    )
+
                 def __getattr__(self, attr):
                     return getattr(app, attr)
 
