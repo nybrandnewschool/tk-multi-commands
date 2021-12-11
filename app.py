@@ -356,6 +356,12 @@ class MultiCommandsApp(Application):
         return True
 
     def post_context_change(self, old_context, new_context):
+        """
+        Call the context_changed callback on all registered Commands and
+        Command modules.
+        """
+
+        # Execute Command context_changed callbacks
         for obj in self.commands_modules + self.commands_registry:
             obj.app = self
             obj.engine = self.engine
@@ -364,6 +370,17 @@ class MultiCommandsApp(Application):
 
             if hasattr(obj, 'context_changed'):
                 obj.context_changed(old_context, new_context)
+
+        # Ensure Commands get added back to Engine!
+        # The default implementation in engine.__load_apps uses "is" to find
+        # commands belonging to apps. That check failied with the
+        # ApplicationProxy tk-multi-commands uses to allow submenu grouping.
+        command_pool = self.engine._Engine__command_pool
+        commands = self.engine._Enging__commands
+        for command_name, command in command_pool.items():
+            command_app = command.get('properties', dict()).get('app')
+            if command_app == self:
+                commands[command_name] = command
 
     def _load_commands_path(self):
         """
