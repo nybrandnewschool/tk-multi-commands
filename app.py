@@ -4,11 +4,14 @@
 import os
 import types
 import sys
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 
 # Third party imports
 from sgtk.platform import Application
+
+# compatible with Python 2 *and* 3:
+ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
 
 
 def normalize(*parts):
@@ -115,7 +118,7 @@ class MultiCommandsApp(Application):
                     self.app,
                     widget,
                     *args,
-                    **kwargs,
+                    **kwargs
                 )
 
             def show_modal(self, title, widget, *args, **kwargs):
@@ -124,7 +127,7 @@ class MultiCommandsApp(Application):
                     self.app,
                     widget,
                     *args,
-                    **kwargs,
+                    **kwargs
                 )
 
             def available(self):
@@ -213,7 +216,7 @@ class MultiCommandsApp(Application):
                     self.app,
                     widget_cls,
                     *widget_args,
-                    **widget_kwargs,
+                    **widget_kwargs
                 )
                 self.widget = widget
                 self.add_closeEvent(widget)
