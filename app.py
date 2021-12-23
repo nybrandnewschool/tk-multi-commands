@@ -379,7 +379,7 @@ class MultiCommandsApp(Application):
         # commands belonging to apps. That check failied with the
         # ApplicationProxy tk-multi-commands uses to allow submenu grouping.
         command_pool = self.engine._Engine__command_pool
-        commands = self.engine._Enging__commands
+        commands = self.engine._Engine__commands
         for command_name, command in command_pool.items():
             command_app = command.get('properties', dict()).get('app')
             if command_app == self:
